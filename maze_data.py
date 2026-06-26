@@ -1,6 +1,9 @@
 import random
 from collections import deque
 
+# Direction look-up table:
+# "D" : (dx, dy, my_bit, neighbour_bit)
+# (dx, dy) -> how to move
 bible: dict[str, tuple[int, int, int, int]] = {
     "N": (0, 1, 1, 4),
     "E": (1, 0, 2, 8),
@@ -8,13 +11,15 @@ bible: dict[str, tuple[int, int, int, int]] = {
     "W": (-1, 0, 8, 2),
 }
 
-pattern_42: list[list[int]] = [
-    [0, 1, 0, 1, 1, 1],
-    [0, 1, 0, 1, 0, 0],
-    [1, 1, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 1],
-    [1, 0, 0, 1, 1, 1]
+# '42' pattern flipped upside down, in boolean form.
+pattern_42: list[list[bool]] = [
+    [False, True, False, True, True, True],
+    [False, True, False, True, False, False],
+    [True, True, False, True, True, True],
+    [True, False, False, False, False, True],
+    [True, False, False, True, True, True]
 ]
+# to center it : we have to anchor to x and y from a direction -> ax, ay
 
 
 class Maze:
@@ -23,6 +28,17 @@ class Maze:
         self.width = width
         self.storage: list[list[int]] = [
             [15 for _ in range(width)] for _ in range(height)]
+
+    def make_pattern_anchors(self) -> set[tuple[int, int]]:
+        ax: int = (self.width - 6) // 2
+        ay: int = (self.height - 5) // 2
+
+        blocked = []
+        for j, row in enumerate(pattern_42):
+            for i, is_blocked in enumerate(row):
+                if is_blocked:
+                    blocked.append(tuple([ax + i, ay + j]))
+        return set(blocked)
 
     def is_valid(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
@@ -71,8 +87,8 @@ class Maze:
             self.storage[y + dy][x + dx] &= ~b2
 
     def carve_maze(
-            self, entry: tuple[int, int], seed: int | None = None
-    ) -> None:
+            self, entry: tuple[int, int], seed: int | None = None,
+            blocked: set[tuple[int, int]] = set()) -> None:
         if seed is not None:
             random.seed(seed)
         seen: set[tuple[int, int]] = set()
@@ -82,7 +98,8 @@ class Maze:
         while stack:
             x, y = stack[-1]
             unseen = [i for i in self.get_neighbors(
-                x, y) if (i[0], i[1]) not in seen]
+                x, y) if (i[0], i[1]) not in seen and
+                (i[0], i[1]) not in blocked]
             if not unseen:
                 stack.pop()
             else:
