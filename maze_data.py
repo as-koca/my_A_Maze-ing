@@ -20,6 +20,11 @@ pattern_42: list[list[bool]] = [
     [True, False, False, True, True, True]
 ]
 # to center it : we have to anchor to x and y from a direction -> ax, ay
+# IF WE HAVE TO RE-CARVE AND THEREFOR CHAND THE SEED --> Print to stdout that
+# the SEED was changed!
+
+# FIT CHECK OF '42' PATTERN IN THE MAZE -> during maze generation outside class
+#
 
 
 class Maze:

@@ -10,6 +10,7 @@ class Config:
     exit: tuple[int, int]
     output_file: str
     perfect: bool
+    seed: int | None = None
 
 
 def read_config() -> dict[str, str]:
@@ -85,6 +86,14 @@ def verify_file(file: dict[str, str]) -> Config | None:
     else:
         print("Error: Perfect Status could not be confirmed")
         return None
+    if "SEED" in file:
+        try:
+            input_seed = int(file["SEED"])
+        except ValueError as e:
+            print(e)
+            return None
+    else:
+        input_seed = None
     if not file["OUTPUT_FILE"]:
         print("ERROR: Output file cannot be empty")
         return None
@@ -94,6 +103,7 @@ def verify_file(file: dict[str, str]) -> Config | None:
         entry=(x_entry, y_entry),
         exit=(x_exit, y_exit),
         output_file=file["OUTPUT_FILE"],
-        perfect=perfect_status
+        perfect=perfect_status,
+        seed=input_seed
     )
     return config

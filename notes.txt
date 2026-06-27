@@ -1,0 +1,10 @@
+
+    output.py - line:12
+    1)ERROR MESSAGE IN OUTPUT (MAZE NOT SOLVED) AN "N" INSTEAD OF NUMBER
+    
+    parser.py
+    2)ADDED the 'seed' field validator in `Config`, parsed it in `verify_file`
+      and assigned it in the `Config` constructor at the end.
+    
+    
+    3)
