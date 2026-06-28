@@ -1,10 +1,22 @@
-
-    output.py - line:12
-    1)ERROR MESSAGE IN OUTPUT (MAZE NOT SOLVED) AN "N" INSTEAD OF NUMBER
-    
     parser.py
-    2)ADDED the 'seed' field validator in `Config`, parsed it in `verify_file`
+    1)ADDED the 'seed' field validator in `Config`, parsed it in `verify_file`
       and assigned it in the `Config` constructor at the end.
     
-    
-    3)
+    maze_data: line: 97
+    2) No need to check if seed is not None, I always assure
+       it has a value in `a_maze_ing.py: lines 20-21`
+
+    output.py: line: 20
+    3) Added a print to tell user the write to the output file was successful.
+
+    maze_data: line: 61
+    4) has_wall() returns `None` on programmer error, changed it to raise an error instead.
+
+    5) Added is_3x3_open and has_3x3_open for unperfect maze
+       Added 'add_wall()` for the unperfect maze if we have a 3x3 area open
+
+
+N = 1 = 0001  → bit 0
+E = 2 = 0010  → bit 1
+S = 4 = 0100  → bit 2
+W = 8 = 1000  → bit 3

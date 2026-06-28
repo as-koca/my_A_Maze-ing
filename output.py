@@ -15,3 +15,6 @@ def write_maze(
         fd.write(f"{entry[0]},{entry[1]}\n")
         fd.write(f"{exit[0]},{exit[1]}\n")
         fd.write("".join(path) + "\n")
+
+        # --- ADDED THIS THIS LINE (ALI) --- #
+        print(f"Output written into {output_file}")

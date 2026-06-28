@@ -34,21 +34,10 @@ class Maze:
         self.storage: list[list[int]] = [
             [15 for _ in range(width)] for _ in range(height)]
 
-    def make_pattern_anchors(self) -> set[tuple[int, int]]:
-        ax: int = (self.width - 6) // 2
-        ay: int = (self.height - 5) // 2
-
-        blocked = []
-        for j, row in enumerate(pattern_42):
-            for i, is_blocked in enumerate(row):
-                if is_blocked:
-                    blocked.append(tuple([ax + i, ay + j]))
-        return set(blocked)
-
     def is_valid(self, x: int, y: int) -> bool:
         return 0 <= x < self.width and 0 <= y < self.height
 
-    def has_wall(self, x: int, y: int, direction: str) -> bool | None:
+    def has_wall(self, x: int, y: int, direction: str) -> bool:
         book = {
             "N": 1,
             "E": 2,
@@ -57,8 +46,8 @@ class Maze:
         }
         bi_direction: int | None = book.get(direction, None)
         if bi_direction is None:
-            print("ERROR: Unknown Direction")
-            return None
+            raise ValueError(
+                "ERROR: Unknown Direction, Use: 'N', 'E', 'S' or 'W'")
         cell: int = self.storage[y][x]
         return bool(cell & bi_direction)
 
@@ -90,6 +79,23 @@ class Maze:
         else:
             self.storage[y][x] &= ~b1
             self.storage[y + dy][x + dx] &= ~b2
+
+    def add_wall(self, x: int, y: int, direction: str) -> None:
+        valid = self.get_neighbors(x, y)
+        if direction not in bible:
+            print("Error: Invalid Direction")
+            return
+        neigh_info: tuple[int, int, int, int] = bible[direction]
+        dx: int = neigh_info[0]
+        dy: int = neigh_info[1]
+        b1: int = neigh_info[2]
+        b2: int = neigh_info[3]
+        if (x + dx, y + dy, direction) not in valid:
+            print("Error: Cannot remove outer maze walls")
+            return
+        else:
+            self.storage[y][x] |= b1
+            self.storage[y + dy][x + dx] |= b2
 
     def carve_maze(
             self, entry: tuple[int, int], seed: int | None = None,
@@ -149,3 +155,34 @@ class Maze:
             node = (x_prev, y_prev)
         path = path[::-1]
         return path
+
+    def make_pattern_anchors(self) -> set[tuple[int, int]]:
+        ax: int = (self.width - 6) // 2
+        ay: int = (self.height - 5) // 2
+
+        blocked = []
+        for j, row in enumerate(pattern_42):
+            for i, is_blocked in enumerate(row):
+                if is_blocked:
+                    blocked.append((ax + i, ay + j))
+        return set(blocked)
+
+    def is_3x3_open(self, x: int, y: int) -> bool:
+        for j in range(3):
+            for i in range(2):
+                if self.has_wall(x + i, y + j, "E"):
+                    return False
+        for j in range(2):
+            for i in range(3):
+                if self.has_wall(x + i, y + j, "N"):
+                    return False
+        return True
+
+    # Temporary check (maybe)
+    # This mf gets expensive in terms of performence for very large mazes
+    def has_3x3_open(self) -> bool:
+        for y in range(self.height - 2):
+            for x in range(self.width - 2):
+                if self.is_3x3_open(x, y):
+                    return True
+        return False
