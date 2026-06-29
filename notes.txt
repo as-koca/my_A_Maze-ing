@@ -1,3 +1,8 @@
+
+    a_maze_ing: line: 24 - line: 28
+    0) Decided; width of maze should be minimum 10 and height minimum 9 so
+       as to have at least 2 cells around pattern
+
     parser.py
     1)ADDED the 'seed' field validator in `Config`, parsed it in `verify_file`
       and assigned it in the `Config` constructor at the end.
@@ -9,12 +14,32 @@
     output.py: line: 20
     3) Added a print to tell user the write to the output file was successful.
 
-    maze_data: line: 61
+    maze_data: line: 61, lines: 69 and 86
     4) has_wall() returns `None` on programmer error, changed it to raise an error instead.
+       add_wall() and remove_wall() now raise an error too instead of printong to the user.
 
+    maze_data:
     5) Added is_3x3_open and has_3x3_open for unperfect maze
        Added 'add_wall()` for the unperfect maze if we have a 3x3 area open
+       Have a comment above has3x3open to del later.
+    
+    maze_data: carve_maze and carve_unperfect_maze
+    6) Allowed blocked set to be either a `set` or `None`, if `None` assign
+       it to an empty set() so as to avoid using a default mutable argument.
+       # Apparently very VERY bad practice to use mutable 
+       # (list, dict, set, ...) default args
+    
+    a_maze_ing: lines: 50-52
+    7) Added a message to user when carving failed and changing seed
+    
+ON PYTHON DEFAULT MUTABLE ARGS example:
+def append_to(item, lst: list = []):
+    lst.append(item)
+    return lst
 
+print(append_to(1))  # [1]
+print(append_to(2))  # [1, 2] when we should expect [2]
+print(append_to(3))  # [1, 2, 3] when we should expect [3]
 
 N = 1 = 0001  → bit 0
 E = 2 = 0010  → bit 1

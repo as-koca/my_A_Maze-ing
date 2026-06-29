@@ -23,9 +23,6 @@ pattern_42: list[list[bool]] = [
 # IF WE HAVE TO RE-CARVE AND THEREFOR CHAND THE SEED --> Print to stdout that
 # the SEED was changed!
 
-# FIT CHECK OF '42' PATTERN IN THE MAZE -> during maze generation outside class
-#
-
 
 class Maze:
     def __init__(self, width: int, height: int) -> None:
@@ -66,15 +63,13 @@ class Maze:
     def remove_wall(self, x: int, y: int, direction: str) -> None:
         valid = self.get_neighbors(x, y)
         if direction not in bible:
-            print("Error: Invalid Direction")
-            return
+            raise ValueError("Error: Invalid Direction")
         neigh_info: tuple[int, int, int, int] = bible[direction]
         dx: int = neigh_info[0]
         dy: int = neigh_info[1]
         b1: int = neigh_info[2]
         b2: int = neigh_info[3]
         if (x + dx, y + dy, direction) not in valid:
-            print("Error: Cannot remove outer maze walls")
             return
         else:
             self.storage[y][x] &= ~b1
@@ -83,15 +78,13 @@ class Maze:
     def add_wall(self, x: int, y: int, direction: str) -> None:
         valid = self.get_neighbors(x, y)
         if direction not in bible:
-            print("Error: Invalid Direction")
-            return
+            raise ValueError("Error: Invalid Direction")
         neigh_info: tuple[int, int, int, int] = bible[direction]
         dx: int = neigh_info[0]
         dy: int = neigh_info[1]
         b1: int = neigh_info[2]
         b2: int = neigh_info[3]
         if (x + dx, y + dy, direction) not in valid:
-            print("Error: Cannot remove outer maze walls")
             return
         else:
             self.storage[y][x] |= b1
@@ -99,9 +92,11 @@ class Maze:
 
     def carve_maze(
             self, entry: tuple[int, int], seed: int | None = None,
-            blocked: set[tuple[int, int]] = set()) -> None:
+            blocked: set[tuple[int, int]] | None = None) -> None:
         if seed is not None:
             random.seed(seed)
+        if blocked is None:
+            blocked = set()
         seen: set[tuple[int, int]] = set()
         stack: list[tuple[int, int]] = []
         stack.append(entry)
@@ -186,3 +181,22 @@ class Maze:
                 if self.is_3x3_open(x, y):
                     return True
         return False
+
+    # Apparently very VERY bad practice to use mutable
+    # (list, dict, set, ...) default args
+    # Using has_wall() to reduce calls to has_3x3_open()
+    def carve_unperfect_maze(self, entry: tuple[int, int], seed: int | None,
+                             blocked: set[tuple[int, int]] | None = None,
+                             loop_factor: float = 0.3) -> None:
+        if blocked is None:
+            blocked = set()
+        dirs: list[str] = ["N", "E"]
+        self.carve_maze(entry, seed, blocked)
+        for x in range(self.width):
+            for y in range(self.height):
+                for direction in dirs:
+                    if random.random() < loop_factor:
+                        if self.has_wall(x, y, direction):
+                            self.remove_wall(x, y, direction)
+                            if self.has_3x3_open():
+                                self.add_wall(x, y, direction)

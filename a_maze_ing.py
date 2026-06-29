@@ -1,19 +1,24 @@
 import sys
+import curses
 from time import time
-from my_parser import read_config, verify_file, Config
+from parser import read_config, verify_file, Config
 from maze_data import Maze
 from output import write_maze
+from render import render_maze
 
 # Decided width of maze should be at least 10 for the 42 pattern to be included
 # Decided height should be at least 9 -> to have at least 2 cells around pattrn
 
 
-def main() -> None:
-    parsed: dict[str, str] = read_config()
-    config: Config | None = verify_file(parsed)
-    if config is None:
-        sys.exit()
+def generate_maze(config: Config | None) -> tuple[Maze,
+                                                  list[str],
+                                                  set[tuple[int, int]]]:
+    """Game logic, carves and solves maze with given configuration and
+        writes output to a designated file."""
 
+    """Preliminary validation checks before game logic"""
+    if not config:
+        sys.exit()
     pattern_fits: bool = True
     pattern_cells: set[tuple[int, int]] = set()
     maze = Maze(config.width, config.height)
@@ -30,26 +35,50 @@ def main() -> None:
     if pattern_fits:
         pattern_cells = maze.make_pattern_anchors()
 
+    """Game logic for perfect and unperfect maze,
+        seperated into an if else block"""
     solved_path: list[str] | None = None
     carve_attempts: int = 0
     while solved_path is None and carve_attempts < 100:
         maze = Maze(config.width, config.height)
-        maze.carve_maze(config.entry, config.seed +
-                        carve_attempts, pattern_cells)
+        if config.perfect:
+            maze.carve_maze(config.entry, config.seed +
+                            carve_attempts, pattern_cells)
+        else:
+            maze.carve_unperfect_maze(config.entry, config.seed +
+                                      carve_attempts, pattern_cells)
         solved_path = maze.solve(config.entry, config.exit)
         carve_attempts += 1
+        if carve_attempts == 2:
+            print("Carving failed, attempting with new seeds...")
+
     if carve_attempts == 100:
-        maze = Maze(config.width, config.height)
         print("Failed to find an exit path with '42' pattern", end=' ')
         print("after 100 attempts, Proceeding without it...")
-        maze.carve_maze(config.entry, config.seed + 100)
+        maze = Maze(config.width, config.height)
+        if config.perfect:
+            maze.carve_maze(config.entry, config.seed + 100)
+        else:
+            maze.carve_unperfect_maze(config.entry, config.seed + 100)
         solved_path = maze.solve(config.entry, config.exit)
+
     if not solved_path:
         print("No path found to reach exit...")
         sys.exit()
-    else:
-        write_maze(maze, config.entry, config.exit,
-                   solved_path, config.output_file)
+    print(f"Maze generated with seed: {config.seed + carve_attempts}")
+    return (maze, solved_path, pattern_cells)
+
+
+def main() -> None:
+    parsed: dict[str, str] = read_config()
+    config: Config | None = verify_file(parsed)
+    if config is None:
+        sys.exit()
+    maze, solved_path, pattern = generate_maze(config)
+    write_maze(maze, config.entry, config.exit,
+               solved_path, config.output_file)
+    curses.wrapper(lambda stdscr: render_maze(
+        stdscr, maze, config, solved_path, pattern))
 
 
 if __name__ == "__main__":
