@@ -31,6 +31,9 @@
     
     a_maze_ing: lines: 50-52
     7) Added a message to user when carving failed and changing seed
+
+    render.py
+    8) added main render logic (hell)
     
 ON PYTHON DEFAULT MUTABLE ARGS example:
 def append_to(item, lst: list = []):
