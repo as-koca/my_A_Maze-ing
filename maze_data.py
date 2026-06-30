@@ -13,11 +13,11 @@ bible: dict[str, tuple[int, int, int, int]] = {
 
 # '42' pattern flipped upside down, in boolean form.
 pattern_42: list[list[bool]] = [
-    [False, True, False, True, True, True],
-    [False, True, False, True, False, False],
-    [True, True, False, True, True, True],
-    [True, False, False, False, False, True],
-    [True, False, False, True, True, True]
+    [False, False, True, False, True, True, True],
+    [False, False, True, False, True, False, False],
+    [True, True, True, False, True, True, True],
+    [True, False, False, False, False, False, True],
+    [True, False, False, False, True, True, True]
 ]
 # to center it : we have to anchor to x and y from a direction -> ax, ay
 # IF WE HAVE TO RE-CARVE AND THEREFOR CHAND THE SEED --> Print to stdout that
@@ -151,8 +151,21 @@ class Maze:
         path = path[::-1]
         return path
 
+    def get_path_coords(self, path: list[str] | None,
+                        entry: tuple[int, int]) -> set[tuple[int, int]]:
+        if path is None:
+            return set()
+        x, y = entry
+        coords: set[tuple[int, int]] = {(x, y)}
+        for direction in path:
+            dx, dy = bible[direction][0], bible[direction][1]
+            x += dx
+            y += dy
+            coords.add((x, y))
+        return coords
+
     def make_pattern_anchors(self) -> set[tuple[int, int]]:
-        ax: int = (self.width - 6) // 2
+        ax: int = (self.width - 7) // 2
         ay: int = (self.height - 5) // 2
 
         blocked = []
